@@ -26,74 +26,61 @@ const questions = [
   }
 ];
 
-const questionBox = document.getElementById("questions");
+const questionsDiv = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
-const scoreBox = document.getElementById("score");
+const scoreDiv = document.getElementById("score");
 
 let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
 
-// Display questions
-function displayQuestions() {
+// Create questions
+questions.forEach((q, index) => {
 
-  questionBox.innerHTML = "";
+  const div = document.createElement("div");
 
-  questions.forEach((q, index) => {
+  div.innerHTML = `<p>${index + 1}. ${q.question}</p>`;
 
-    let div = document.createElement("div");
+  q.options.forEach(option => {
 
-    div.innerHTML = `
-      <p>${index + 1}. ${q.question}</p>
+    div.innerHTML += `
+      <input 
+        type="radio"
+        name="q${index}"
+        value="${option}"
+        ${progress[index] === option ? "checked" : ""}
+      >
+      ${option}
+      <br>
     `;
-
-    q.options.forEach((option) => {
-
-      div.innerHTML += `
-        <label>
-          <input 
-            type="radio" 
-            name="question${index}" 
-            value="${option}"
-            ${progress[index] === option ? "checked" : ""}
-          >
-          ${option}
-        </label>
-        <br>
-      `;
-
-    });
-
-    questionBox.appendChild(div);
 
   });
 
-}
+  questionsDiv.appendChild(div);
+
+});
 
 
-displayQuestions();
+// Save progress
+document.querySelectorAll("input[type='radio']").forEach(input => {
 
+  input.addEventListener("change", function(){
 
-// Save selected answers
-questionBox.addEventListener("change", function(e) {
+    let index = this.name.replace("q","");
 
-  if(e.target.type === "radio") {
-
-    let questionIndex = e.target.name.replace("question","");
-
-    progress[questionIndex] = e.target.value;
+    progress[index] = this.value;
 
     sessionStorage.setItem(
       "progress",
       JSON.stringify(progress)
     );
 
-  }
+  });
 
 });
 
 
-// Submit quiz
-submitBtn.addEventListener("click", function() {
+// Calculate score
+submitBtn.addEventListener("click", function(){
 
   let score = 0;
 
@@ -106,7 +93,7 @@ submitBtn.addEventListener("click", function() {
   });
 
 
-  scoreBox.innerText = `Your score is ${score} out of 5.`;
+  scoreDiv.innerText = `Your score is ${score} out of 5.`;
 
   localStorage.setItem("score", score);
 
