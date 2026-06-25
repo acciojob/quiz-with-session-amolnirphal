@@ -26,77 +26,88 @@ const questions = [
   }
 ];
 
-const questionsContainer = document.getElementById("questions");
-const submitButton = document.getElementById("submit");
-const scoreContainer = document.getElementById("score");
+const questionBox = document.getElementById("questions");
+const submitBtn = document.getElementById("submit");
+const scoreBox = document.getElementById("score");
 
-let savedProgress = JSON.parse(sessionStorage.getItem("progress")) || [];
+let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Create quiz
-questions.forEach((item, index) => {
 
-  const questionDiv = document.createElement("div");
+// Display questions
+function displayQuestions() {
 
-  questionDiv.innerHTML = `
-    <p>${index + 1}. ${item.question}</p>
-  `;
+  questionBox.innerHTML = "";
 
-  item.options.forEach((option) => {
+  questions.forEach((q, index) => {
 
-    const checked =
-      savedProgress[index] === option ? "checked" : "";
+    let div = document.createElement("div");
 
-    questionDiv.innerHTML += `
-      <label>
-        <input 
-          type="radio"
-          name="question${index}"
-          value="${option}"
-          ${checked}
-        >
-        ${option}
-      </label>
-      <br>
+    div.innerHTML = `
+      <p>${index + 1}. ${q.question}</p>
     `;
+
+    q.options.forEach((option) => {
+
+      div.innerHTML += `
+        <label>
+          <input 
+            type="radio" 
+            name="question${index}" 
+            value="${option}"
+            ${progress[index] === option ? "checked" : ""}
+          >
+          ${option}
+        </label>
+        <br>
+      `;
+
+    });
+
+    questionBox.appendChild(div);
+
   });
 
-  questionsContainer.appendChild(questionDiv);
-});
+}
 
 
-// Save progress
-document.querySelectorAll("input[type='radio']").forEach((radio) => {
+displayQuestions();
 
-  radio.addEventListener("change", function () {
 
-    savedProgress[this.name.replace("question", "")] = this.value;
+// Save selected answers
+questionBox.addEventListener("change", function(e) {
+
+  if(e.target.type === "radio") {
+
+    let questionIndex = e.target.name.replace("question","");
+
+    progress[questionIndex] = e.target.value;
 
     sessionStorage.setItem(
       "progress",
-      JSON.stringify(savedProgress)
+      JSON.stringify(progress)
     );
 
-  });
+  }
 
 });
 
 
 // Submit quiz
-submitButton.addEventListener("click", function () {
+submitBtn.addEventListener("click", function() {
 
-  let totalScore = 0;
+  let score = 0;
 
-  questions.forEach((question, index) => {
+  questions.forEach((q,index)=>{
 
-    if (savedProgress[index] === question.answer) {
-      totalScore++;
+    if(progress[index] === q.answer){
+      score++;
     }
 
   });
 
-  scoreContainer.innerText =
-    `Your score is ${totalScore} out of 5.`;
 
-  localStorage.setItem("score", totalScore);
+  scoreBox.innerText = `Your score is ${score} out of 5.`;
+
+  localStorage.setItem("score", score);
 
 });
