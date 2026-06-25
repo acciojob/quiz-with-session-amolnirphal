@@ -1,18 +1,13 @@
 const questions = [
   {
     question: "What is the capital of France?",
-    choices: ["Paris", "London", "Berlin", "Madrid"],
+    choices: ["London", "Paris", "Berlin", "Rome"],
     answer: "Paris"
   },
   {
-    question: "Which language is used for web development?",
-    choices: ["Python", "HTML", "Java", "C++"],
-    answer: "HTML"
-  },
-  {
-    question: "What is 2 + 2?",
-    choices: ["3", "4", "5", "6"],
-    answer: "4"
+    question: "What is the highest mountain in the world?",
+    choices: ["K2", "Everest", "Kilimanjaro", "Fuji"],
+    answer: "Everest"
   },
   {
     question: "Which planet is known as Red Planet?",
@@ -20,75 +15,79 @@ const questions = [
     answer: "Mars"
   },
   {
-    question: "Which is a JavaScript framework?",
-    choices: ["React", "Django", "Laravel", "Spring"],
-    answer: "React"
+    question: "What is 2 + 2?",
+    choices: ["3", "4", "5", "6"],
+    answer: "4"
+  },
+  {
+    question: "Which language is used for web development?",
+    choices: ["Python", "Java", "HTML", "C++"],
+    answer: "HTML"
   }
 ];
 
-
-const questionBox = document.getElementById("questions");
+const questionsDiv = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
-const scoreBox = document.getElementById("score");
-
+const scoreDiv = document.getElementById("score");
 
 let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
 
-// Render questions
-questions.forEach((q, index) => {
+// Display questions
+function loadQuiz() {
+  questionsDiv.innerHTML = "";
 
-  const div = document.createElement("div");
+  questions.forEach((q, index) => {
 
-  let html = `<p>${q.question}</p>`;
+    const div = document.createElement("div");
 
-  q.choices.forEach(choice => {
-
-    html += `
-      <input 
-        type="radio"
-        name="question${index}"
-        value="${choice}"
-        ${progress[index] === choice ? 'checked="true"' : ""}
-      >
-      ${choice}
+    div.innerHTML = `
+      ${q.question}
+      <br>
+      ${q.choices.map(choice => `
+        <label>
+          <input 
+            type="radio"
+            name="question${index}"
+            value="${choice}"
+            ${progress[index] === choice ? "checked" : ""}
+          >
+          ${choice}
+        </label>
+        <br>
+      `).join("")}
       <br>
     `;
 
+    questionsDiv.appendChild(div);
   });
 
 
-  div.innerHTML = html;
+  document.querySelectorAll("input[type='radio']").forEach(input => {
 
-  questionBox.appendChild(div);
+    input.addEventListener("change", function(){
 
-});
+      const name = this.name;
+      const index = name.replace("question","");
 
+      progress[index] = this.value;
 
-// Save selected options
-document.querySelectorAll("input[type='radio']").forEach(input => {
+      sessionStorage.setItem(
+        "progress",
+        JSON.stringify(progress)
+      );
 
-  input.addEventListener("change", function(){
-
-    const index = this.name.replace("question", "");
-
-    progress[index] = this.value;
-
-    sessionStorage.setItem(
-      "progress",
-      JSON.stringify(progress)
-    );
+    });
 
   });
 
-});
+}
 
 
-// Submit
+// Submit quiz
 submitBtn.addEventListener("click", function(){
 
   let score = 0;
-
 
   questions.forEach((q,index)=>{
 
@@ -99,9 +98,8 @@ submitBtn.addEventListener("click", function(){
   });
 
 
-  scoreBox.textContent = 
+  scoreDiv.innerText = 
     `Your score is ${score} out of 5.`;
-
 
   localStorage.setItem(
     "score",
@@ -109,3 +107,11 @@ submitBtn.addEventListener("click", function(){
   );
 
 });
+
+
+// Load previous score after refresh
+window.onload = function(){
+
+  loadQuiz();
+
+};
