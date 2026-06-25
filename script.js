@@ -26,71 +26,77 @@ const questions = [
   }
 ];
 
-// UI
-document.body.innerHTML = `
-<h1>Quiz</h1>
-<div id="questions"></div>
-<button id="submit">Submit</button>
-<div id="score"></div>
-`;
+const questionsContainer = document.getElementById("questions");
+const submitButton = document.getElementById("submit");
+const scoreContainer = document.getElementById("score");
 
-const questionsDiv = document.getElementById("questions");
-const submitBtn = document.getElementById("submit");
-const scoreDiv = document.getElementById("score");
+let savedProgress = JSON.parse(sessionStorage.getItem("progress")) || [];
 
-// Load saved progress (MUST be object)
-let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
+// Create quiz
+questions.forEach((item, index) => {
 
-// Render questions
-function renderQuiz() {
-  questionsDiv.innerHTML = "";
+  const questionDiv = document.createElement("div");
 
-  questions.forEach((q, i) => {
-    const qDiv = document.createElement("div");
+  questionDiv.innerHTML = `
+    <p>${index + 1}. ${item.question}</p>
+  `;
 
-    qDiv.innerHTML = `
-      <p>${i + 1}. ${q.question}</p>
-      ${q.options
-        .map(
-          (opt) => `
-        <label>
-          <input type="radio" name="q${i}" value="${opt}"
-          ${progress[i] === opt ? "checked" : ""}>
-          ${opt}
-        </label>
-        <br>
-      `
-        )
-        .join("")}
+  item.options.forEach((option) => {
+
+    const checked =
+      savedProgress[index] === option ? "checked" : "";
+
+    questionDiv.innerHTML += `
+      <label>
+        <input 
+          type="radio"
+          name="question${index}"
+          value="${option}"
+          ${checked}
+        >
+        ${option}
+      </label>
+      <br>
     `;
-
-    questionsDiv.appendChild(qDiv);
   });
-}
 
-renderQuiz();
-
-// Save progress correctly
-questionsDiv.addEventListener("change", (e) => {
-  if (e.target.type === "radio") {
-    const index = e.target.name.replace("q", "");
-    progress[index] = e.target.value;
-
-    sessionStorage.setItem("progress", JSON.stringify(progress));
-  }
+  questionsContainer.appendChild(questionDiv);
 });
 
-// Submit quiz
-submitBtn.addEventListener("click", () => {
-  let score = 0;
 
-  questions.forEach((q, i) => {
-    if (progress[i] === q.answer) {
-      score++;
-    }
+// Save progress
+document.querySelectorAll("input[type='radio']").forEach((radio) => {
+
+  radio.addEventListener("change", function () {
+
+    savedProgress[this.name.replace("question", "")] = this.value;
+
+    sessionStorage.setItem(
+      "progress",
+      JSON.stringify(savedProgress)
+    );
+
   });
 
-  scoreDiv.textContent = `Your score is ${score} out of 5.`;
+});
 
-  localStorage.setItem("score", score);
+
+// Submit quiz
+submitButton.addEventListener("click", function () {
+
+  let totalScore = 0;
+
+  questions.forEach((question, index) => {
+
+    if (savedProgress[index] === question.answer) {
+      totalScore++;
+    }
+
+  });
+
+  scoreContainer.innerText =
+    `Your score is ${totalScore} out of 5.`;
+
+  localStorage.setItem("score", totalScore);
+
 });
