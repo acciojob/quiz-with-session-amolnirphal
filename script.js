@@ -27,39 +27,29 @@ const questions = [
 ];
 
 
-const questionsDiv = document.getElementById("questions");
+const questionBox = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
-const scoreDiv = document.getElementById("score");
+const scoreBox = document.getElementById("score");
 
 
 let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
 
 
-// Display Questions
+// Render questions
 questions.forEach((q, index) => {
 
-  let div = document.createElement("div");
+  const div = document.createElement("div");
 
-  div.innerHTML = `
-    <p>${q.question}</p>
-  `;
-
+  let html = `<p>${q.question}</p>`;
 
   q.choices.forEach(choice => {
 
-    let checked = "";
-
-    if(progress[index] === choice){
-      checked = 'checked="true"';
-    }
-
-
-    div.innerHTML += `
+    html += `
       <input 
         type="radio"
         name="question${index}"
         value="${choice}"
-        ${checked}
+        ${progress[index] === choice ? 'checked="true"' : ""}
       >
       ${choice}
       <br>
@@ -68,18 +58,19 @@ questions.forEach((q, index) => {
   });
 
 
-  questionsDiv.appendChild(div);
+  div.innerHTML = html;
+
+  questionBox.appendChild(div);
 
 });
 
 
-
-// Save progress
+// Save selected options
 document.querySelectorAll("input[type='radio']").forEach(input => {
 
-  input.addEventListener("click", function(){
+  input.addEventListener("change", function(){
 
-    let index = this.name.replace("question","");
+    const index = this.name.replace("question", "");
 
     progress[index] = this.value;
 
@@ -91,7 +82,6 @@ document.querySelectorAll("input[type='radio']").forEach(input => {
   });
 
 });
-
 
 
 // Submit
@@ -109,7 +99,7 @@ submitBtn.addEventListener("click", function(){
   });
 
 
-  scoreDiv.innerText =
+  scoreBox.textContent = 
     `Your score is ${score} out of 5.`;
 
 
