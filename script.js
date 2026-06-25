@@ -1,77 +1,110 @@
-//your JS code here.
-
-// Do not change code below this line
-// This code will just display the questions to the screen
-const products = [
-  { id: 1, name: "Product 1", price: 10 },
-  { id: 2, name: "Product 2", price: 20 },
-  { id: 3, name: "Product 3", price: 30 },
-  { id: 4, name: "Product 4", price: 40 },
-  { id: 5, name: "Product 5", price: 50 },
+const questions = [
+  {
+    question: "What is the capital of India?",
+    options: ["Mumbai", "Delhi", "Kolkata", "Chennai"],
+    answer: "Delhi"
+  },
+  {
+    question: "Which language is used for web development?",
+    options: ["Python", "Java", "HTML", "C++"],
+    answer: "HTML"
+  },
+  {
+    question: "What is 2 + 2?",
+    options: ["3", "4", "5", "6"],
+    answer: "4"
+  },
+  {
+    question: "Which planet is known as Red Planet?",
+    options: ["Earth", "Mars", "Jupiter", "Venus"],
+    answer: "Mars"
+  },
+  {
+    question: "Which is a JavaScript framework?",
+    options: ["React", "Django", "Laravel", "Spring"],
+    answer: "React"
+  }
 ];
 
-const productList = document.getElementById("product-list");
-const cartList = document.getElementById("cart-list");
-const clearCartBtn = document.getElementById("clear-cart-btn");
 
-let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
+document.body.innerHTML = `
+<h1>Quiz</h1>
 
-function renderProducts() {
-  productList.innerHTML = "";
+<div id="questions"></div>
 
-  products.forEach((product) => {
-    const li = document.createElement("li");
+<button id="submit">Submit</button>
 
-    li.innerHTML = `
-      ${product.name} - $${product.price}
-      <button class="add-to-cart-btn" data-id="${product.id}">
-        Add to Cart
-      </button>
-    `;
+<div id="score"></div>
+`;
 
-    productList.appendChild(li);
+
+const questionsDiv = document.getElementById("questions");
+const submitBtn = document.getElementById("submit");
+const scoreDiv = document.getElementById("score");
+
+let progress = JSON.parse(sessionStorage.getItem("progress")) || {};
+
+
+// Display questions
+questions.forEach((q, index) => {
+
+  const div = document.createElement("div");
+
+  div.innerHTML = `
+    <h3>${index + 1}. ${q.question}</h3>
+    ${q.options.map(option => `
+      <label>
+        <input 
+          type="radio" 
+          name="question${index}" 
+          value="${option}"
+          ${progress[index] === option ? "checked" : ""}
+        >
+        ${option}
+      </label>
+      <br>
+    `).join("")}
+  `;
+
+  questionsDiv.appendChild(div);
+});
+
+
+// Save selected answers in sessionStorage
+document.querySelectorAll("input[type='radio']").forEach(input => {
+
+  input.addEventListener("change", function() {
+
+    const questionNumber = this.name.replace("question", "");
+
+    progress[questionNumber] = this.value;
+
+    sessionStorage.setItem(
+      "progress",
+      JSON.stringify(progress)
+    );
+
   });
 
-  document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      addToCart(Number(button.dataset.id));
-    });
+});
+
+
+// Submit quiz
+submitBtn.addEventListener("click", function() {
+
+  let score = 0;
+
+  questions.forEach((q, index) => {
+
+    if (progress[index] === q.answer) {
+      score++;
+    }
+
   });
-}
 
-function renderCart() {
-  cartList.innerHTML = "";
 
-  cart.forEach((product) => {
-    const li = document.createElement("li");
-    li.textContent = `${product.name} - $${product.price}`;
-    cartList.appendChild(li);
-  });
-}
+  scoreDiv.textContent = `Your score is ${score} out of 5.`;
 
-function addToCart(productId) {
-  const product = products.find((item) => item.id === productId);
+  localStorage.setItem("score", score);
 
-  if (product) {
-    cart.push(product);
-    sessionStorage.setItem("cart", JSON.stringify(cart));
-    renderCart();
-  }
-}
-
-function removeFromCart(productId) {
-  cart = cart.filter((item) => item.id !== productId);
-  sessionStorage.setItem("cart", JSON.stringify(cart));
-  renderCart();
-}
-
-function clearCart() {
-  cart = [];
-  sessionStorage.removeItem("cart");
-  renderCart();
-}
-
-clearCartBtn.addEventListener("click", clearCart);
-
-renderProducts();
-renderCart();
+});
